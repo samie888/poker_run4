@@ -1,0 +1,30 @@
+{
+  "schema_version": "1",
+  "open_source": true,
+  "model_name": "poker44-flow-detector",
+  "model_version": "1",
+  "framework": "mlp-runtime",
+  "license": "MIT",
+  "repo_url": "https://github.com/samie888/poker_run4",
+  "repo_commit": "",
+  "artifact_sha256": "eba8192f7a65b9f8a8f2d70e36e5771f1d2a3c614fc61348672d980202828fbc",
+  "artifact_basename": "current.joblib",
+  "implementation_sha256": "084ac4fee7ec9280fc06125dc4663c4cbb2ddb6811d4bb5aaac7784d72d7db3d",
+  "implementation_files": [
+    "neurons/miner.py",
+    "poker44_ml/inference.py",
+    "poker44_ml/features.py",
+    "poker44_ml/sequence_model.py",
+    "poker44_ml/stacked.py",
+    "poker44_ml/calibration.py",
+    "poker44_ml/batch_calibration.py",
+    "poker44/validator/payload_view.py"
+  ],
+  "inference_mode": "local-joblib",
+  "training_data_statement": "Trained on the Poker44 public training benchmark (api.poker44.net). No validator-private evaluation data used.",
+  "training_data_sources": [
+    "released_training_benchmark"
+  ],
+  "private_data_attestation": "No validator-private data used. Supervised artifacts use released benchmark labels only.",
+  "data_attestation": "No validator-private data used. Supervised artifacts use released benchmark labels only."
+}

@@ -1,0 +1,5 @@
+[project]
+name = "poker-run1"
+version = "0.1.0"
+description = "Aggregate behavioural detector"
+requires-python = ">=3.10"
