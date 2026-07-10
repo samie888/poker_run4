@@ -42,6 +42,7 @@ BATCH_CALIBRATION_METHODS = (
     "topk3",
     "topk4",
     "topk6",
+    "flag_frac",
     "clip_below",
     "clip_below_inverted",
     "spread_clip_below",
@@ -196,6 +197,28 @@ def _adaptive_topk_count(scores: Sequence[float]) -> int:
 def apply_adaptive_topk(scores: Sequence[float]) -> np.ndarray:
     """Spread-aware top-K: K in {0,1,2,4} from batch std; preserves rank order."""
     return apply_topk_calibration(scores, k_bot=_adaptive_topk_count(scores))
+
+
+def apply_flag_frac(scores: Sequence[float], *, fraction: float | None = None) -> np.ndarray:
+    """Flag the top fraction of the batch as bots, rank-preserving (v0.1.34+).
+
+    The validator's threshold-sanity gate zeroes any miner whose scores never
+    cross 0.5 on a true bot, so a fixed fraction of the batch is placed just
+    above the threshold [0.501, 0.549] and the rest spread across [0.05, 0.49].
+    Fully monotone: within-batch ordering (AP) is unchanged. Fraction comes from
+    POKER44_FLAG_FRACTION (default 0.10 = ~10 flags per 100-chunk eval; hard-zero
+    needs ALL flags human, ~0.5^10 even at random ordering).
+    """
+    if fraction is None:
+        fraction = float(os.getenv("POKER44_FLAG_FRACTION", "0.10"))
+    fraction = max(0.0, min(1.0, float(fraction)))
+    n = len(scores)
+    k = int(math.ceil(fraction * n)) if n else 0
+    return apply_topk_calibration(
+        scores, k_bot=k,
+        human_low=0.05, human_hi=0.49,
+        bot_low=0.501, bot_hi=0.549,
+    )
 
 
 def apply_topk1(scores: Sequence[float]) -> np.ndarray:
@@ -358,6 +381,8 @@ def apply_batch_calibration(
         calibrated = apply_topk4(scores)
     elif name == "topk6":
         calibrated = apply_topk6(scores)
+    elif name == "flag_frac":
+        calibrated = apply_flag_frac(scores)
     elif name == "clip_below":
         calibrated = apply_clip_below(scores)
     elif name == "clip_below_inverted":
@@ -388,6 +413,8 @@ def batch_calibration_metadata(method: str) -> dict[str, Any]:
         expected_bot_fraction = 0.10
     elif name == "topk6":
         expected_bot_fraction = 0.15
+    elif name == "flag_frac":
+        expected_bot_fraction = float(os.getenv("POKER44_FLAG_FRACTION", "0.10"))
     elif name == "adaptive_topk":
         expected_bot_fraction = None
     elif name == "clip_below":
